@@ -137,3 +137,225 @@
 //        return d;
 //    }
 //};
+
+////////////////////////抽象类
+//#include <iostream>
+//using namespace std;
+//
+//class Car
+//{
+//public:
+//	virtual void Drive() = 0;
+//};
+//
+//
+//class Benz : public Car
+//{
+//public:
+//	virtual void Drive()
+//	{
+//		cout << "Benz-舒适" << endl;
+//	}
+//};
+//
+//class BMW : public Car
+//{
+//public:
+//	virtual void Drive()
+//	{
+//		cout << "BMW-操控" << endl;
+//	}
+//};
+//
+//
+//int main()
+//{
+//	Benz b;//正确
+//	BMW w;//正确
+//
+//	Car* ptr = &b;
+//	ptr->Drive();
+//
+//	ptr = &w;
+//	ptr->Drive();
+//
+//	return 0;
+//}
+
+////////////////例子
+//#include <iostream>
+//using namespace std;
+//
+////抽象类动物
+//class Animal 
+//{
+//public:
+//    virtual void speak() = 0;//纯虚函数
+//};
+//
+//
+//class Dog : public Animal 
+//{
+//public:
+//    virtual void speak() override 
+//    {
+//        std::cout << "汪!" << std::endl;
+//    }
+//};
+//
+//class Cat : public Animal 
+//{
+//public:
+//    virtual void speak() override {
+//        std::cout << "喵!" << std::endl;
+//    }
+//};
+//
+//int main()
+//{
+//    Dog d;
+//    Cat c;
+//    Animal* ptr = &d;
+//    ptr->speak();
+//    
+//    ptr = &c;
+//    ptr->speak();
+//    return 0;
+//}
+
+
+///////////////////////动态绑定
+//#include <iostream>
+//using namespace std;
+//
+//class A 
+//{
+//public:
+//	virtual void add()
+//	{
+//		cout << "A:add" << endl;
+//	}
+//};
+//
+//class B : public A
+//{
+//public:
+//	virtual void add()
+//	{
+//		cout << "B:add" << endl;
+//	}
+//private:
+//	int _a = 1;
+//};
+//
+//int main()
+//{/*
+//	B b1;
+//	B b2;*/
+//	int i = 0;
+//	int* ptr = &i;
+//	return 0;
+//}
+
+///////////////////////////////////单进程时的父子类虚表
+//#include <iostream>
+//using namespace std;
+//
+//class Base {
+//public:
+//	virtual void func1() { cout << "Base::func1" << endl; }
+//	virtual void func2() { cout << "Base::func2" << endl; }
+//private:
+//	int a;
+//};
+//
+//class Derive :public Base {
+//public:
+//	virtual void func1() { cout << "Derive::func1" << endl; }
+//	virtual void func3() { cout << "Derive::func3" << endl; }
+//	virtual void func4() { cout << "Derive::func4" << endl; }
+//private:
+//	int b = 0;
+//};
+//
+//typedef void(*VFPTR) ();
+//void PrintVTable(VFPTR vTable[])
+//{
+//	// 依次取虚表中的虚函数指针打印并调用。调用就可以看出存的是哪个函数
+//	cout << " 虚表地址>" << vTable << endl;
+//	for (int i = 0; vTable[i] != nullptr; ++i)
+//	{
+//		printf(" 第%d个虚函数地址 :0X%x,->", i, vTable[i]);
+//		VFPTR f = vTable[i];
+//		f();
+//	}
+//	cout << endl;
+//}
+//int main()
+//{
+//	Base b;
+//	Derive d;
+//
+//	VFPTR * vTableb = (VFPTR*)(*(int*)&b);
+//	PrintVTable(vTableb);
+//
+//	VFPTR* vTabled = (VFPTR*)(*(int*)&d);
+//	PrintVTable(vTabled);
+//	return 0;
+//}
+
+
+/////////////////////////////////////多进程时的父子类虚表
+#include <iostream>
+using namespace std;
+
+class Base1 {
+public:
+	virtual void func1() { cout << "Base1::func1" << endl; }
+	virtual void func2() { cout << "Base1::func2" << endl; }
+private:
+	int b1;
+};
+
+class Base2 {
+public:
+	virtual void func1() { cout << "Base2::func1" << endl; }
+	virtual void func2() { cout << "Base2::func2" << endl; }
+private:
+		int b2;
+};
+
+class Derive : public Base1, public Base2 {
+public:
+	virtual void func1() { cout << "Derive::func1" << endl; }
+	virtual void func3() { cout << "Derive::func3" << endl; }
+private:
+	int d1;
+};
+
+typedef void(*VFPTR) ();
+void PrintVTable(VFPTR vTable[])
+{
+	cout << " 虚表地址>" << vTable << endl;
+	for (int i = 0; vTable[i] != nullptr; ++i)
+	{
+		printf(" 第%d个虚函数地址 :0X%x,->", i, vTable[i]);
+		VFPTR f = vTable[i];
+		f();
+	}
+	cout << endl;
+}
+
+int main()
+{
+	Derive d;
+	VFPTR* vTableb1 = (VFPTR*)(*(int*)&d);
+	PrintVTable(vTableb1);
+
+	//也可以直接切片
+	//Base2* ptr = &d;
+	VFPTR* vTableb2 = (VFPTR*)(*(int*)((char*)&d + sizeof(Base1)));//将Derive*强转为char*，char* + Base1的大小得到Base2空间的首地址...
+	PrintVTable(vTableb2);
+
+	return 0;
+}
